@@ -104,5 +104,4 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running at http://localhost:${PORT}`);
   console.log(`Health check: http://localhost:${PORT}/health`);
-  console.log(`API endpoint: GET http://localhost:${PORT}/api/classify?name=john`);
 });
