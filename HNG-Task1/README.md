@@ -1,4 +1,37 @@
-# Backend Wizards Stage 0 - API Integration & Data Processing
+# Stage 0 — Gender Classification API
+
+Node.js/Express backend that wraps the Genderize API and returns processed classification data.
+
+## Setup
+
+```bash
+npm install
+npm start
+```
+
+Runs on `http://localhost:3000`
+
+## Endpoints
+
+### `GET /health`
+Returns server status.
+
+### `GET /api/classify?name={name}`
+
+**Example response:**
+```json
+{
+  "status": "success",
+  "data": {
+    "name": "john",
+    "gender": "male",
+    "probability": 0.99,
+    "sample_size": 1234,
+    "is_confident": true,
+    "processed_at": "2026-04-01T12:00:00Z"
+  }
+}
+```# Backend Wizards Stage 0 - API Integration & Data Processing
 
 A Node.js/Express API that integrates with the Genderize API and returns processed gender classification data.
 
@@ -84,5 +117,22 @@ curl "http://localhost:3000/api/classify?name=john"
 curl "http://localhost:3000/api/classify"
 
 # Empty name
+curl "http://localhost:3000/api/classify?name="
+```
+
+
+**Errors:**
+| Status | Reason |
+|--------|--------|
+| 400 | Missing or empty name |
+| 500 | Server error |
+| 502 | Genderize API unavailable |
+| 504 | Genderize API timed out |
+
+## Testing
+
+```bash
+curl "http://localhost:3000/api/classify?name=john"
+curl "http://localhost:3000/api/classify"
 curl "http://localhost:3000/api/classify?name="
 ```
