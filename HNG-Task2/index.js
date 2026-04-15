@@ -46,11 +46,18 @@ function classifyAgeGroup(age) {
 
 // Fetch data from external APIs
 async function fetchProfileData(name) {
+  const timeout = 10000; // 10 seconds
   try {
     const [genderRes, agifyRes, nationalizeRes] = await Promise.all([
-      axios.get(`https://api.genderize.io?name=${encodeURIComponent(name)}`),
-      axios.get(`https://api.agify.io?name=${encodeURIComponent(name)}`),
-      axios.get(`https://api.nationalize.io?name=${encodeURIComponent(name)}`),
+      axios.get(`https://api.genderize.io?name=${encodeURIComponent(name)}`, {
+        timeout,
+      }),
+      axios.get(`https://api.agify.io?name=${encodeURIComponent(name)}`, {
+        timeout,
+      }),
+      axios.get(`https://api.nationalize.io?name=${encodeURIComponent(name)}`, {
+        timeout,
+      }),
     ]);
 
     // Validate Genderize response
@@ -88,7 +95,6 @@ async function fetchProfileData(name) {
       prev.probability > current.probability ? prev : current,
     );
 
-    
     return {
       gender: genderRes.data.gender,
       gender_probability: genderRes.data.probability,
@@ -98,10 +104,15 @@ async function fetchProfileData(name) {
       country_probability: country.probability,
     };
   } catch (error) {
+    let apiName = "External API";
+    if (error.config?.url?.includes("genderize")) apiName = "Genderize";
+    if (error.config?.url?.includes("agify")) apiName = "Agify";
+    if (error.config?.url?.includes("nationalize")) apiName = "Nationalize";
+
     return {
       error: true,
-      api: "Unknown",
-      statusCode: 502,
+      api: apiName,
+      statusCode: error.code === "ECONNABORTED" ? 504 : 502,
     };
   }
 }
@@ -138,9 +149,14 @@ app.post("/api/profiles", async (req, res) => {
     const profileData = await fetchProfileData(trimmedName);
 
     if (profileData.error) {
+      const message =
+        profileData.statusCode === 504
+          ? `${profileData.api} request timed out`
+          : `${profileData.api} returned an invalid response`;
+
       return res.status(profileData.statusCode).json({
         status: "error",
-        message: `${profileData.api} returned an invalid response`,
+        message: message,
       });
     }
 
