@@ -88,6 +88,7 @@ async function fetchProfileData(name) {
       prev.probability > current.probability ? prev : current,
     );
 
+    
     return {
       gender: genderRes.data.gender,
       gender_probability: genderRes.data.probability,
