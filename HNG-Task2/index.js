@@ -1,10 +1,10 @@
-import express from 'express';
-import cors from 'cors';
-import axios from 'axios';
-import { v7 as uuidv7 } from 'uuid';
-import Database from 'better-sqlite3';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import express from "express";
+import cors from "cors";
+import axios from "axios";
+import { v7 } from "uuid";
+import Database from "better-sqlite3";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -12,11 +12,11 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
-app.use(cors({ origin: '*' }));
+app.use(cors({ origin: "*" }));
 
 // Database setup
-const db = new Database(path.join(__dirname, 'profiles.db'));
-db.pragma('journal_mode = WAL');
+const db = new Database(path.join(__dirname, "profiles.db"));
+db.pragma("journal_mode = WAL");
 
 // Create tables
 db.exec(`
@@ -37,10 +37,10 @@ db.exec(`
 // Classification functions
 function classifyAgeGroup(age) {
   if (age === null || age === undefined) return null;
-  if (age >= 0 && age <= 12) return 'child';
-  if (age >= 13 && age <= 19) return 'teenager';
-  if (age >= 20 && age <= 59) return 'adult';
-  if (age >= 60) return 'senior';
+  if (age >= 0 && age <= 12) return "child";
+  if (age >= 13 && age <= 19) return "teenager";
+  if (age >= 20 && age <= 59) return "adult";
+  if (age >= 60) return "senior";
   return null;
 }
 
@@ -57,7 +57,7 @@ async function fetchProfileData(name) {
     if (!genderRes.data.gender || genderRes.data.count === 0) {
       return {
         error: true,
-        api: 'Genderize',
+        api: "Genderize",
         statusCode: 502,
       };
     }
@@ -66,7 +66,7 @@ async function fetchProfileData(name) {
     if (agifyRes.data.age === null) {
       return {
         error: true,
-        api: 'Agify',
+        api: "Agify",
         statusCode: 502,
       };
     }
@@ -75,14 +75,14 @@ async function fetchProfileData(name) {
     if (!agifyRes.data.country || agifyRes.data.country.length === 0) {
       return {
         error: true,
-        api: 'Nationalize',
+        api: "Nationalize",
         statusCode: 502,
       };
     }
 
     // Get country with highest probability
     const country = nationalizeRes.data.country.reduce((prev, current) =>
-      prev.probability > current.probability ? prev : current
+      prev.probability > current.probability ? prev : current,
     );
 
     return {
@@ -96,22 +96,22 @@ async function fetchProfileData(name) {
   } catch (error) {
     return {
       error: true,
-      api: 'Unknown',
+      api: "Unknown",
       statusCode: 502,
     };
   }
 }
 
 // Create Profile - POST /api/profiles
-app.post('/api/profiles', async (req, res) => {
+app.post("/api/profiles", async (req, res) => {
   try {
     const { name } = req.body;
 
     // Validation
-    if (!name || typeof name !== 'string' || name.trim() === '') {
+    if (!name || typeof name !== "string" || name.trim() === "") {
       return res.status(400).json({
-        status: 'error',
-        message: 'Missing or empty name',
+        status: "error",
+        message: "Missing or empty name",
       });
     }
 
@@ -119,13 +119,13 @@ app.post('/api/profiles', async (req, res) => {
 
     // Check if profile already exists
     const existingProfile = db
-      .prepare('SELECT * FROM profiles WHERE LOWER(name) = ?')
+      .prepare("SELECT * FROM profiles WHERE LOWER(name) = ?")
       .get(trimmedName);
 
     if (existingProfile) {
       return res.status(200).json({
-        status: 'success',
-        message: 'Profile already exists',
+        status: "success",
+        message: "Profile already exists",
         data: formatProfile(existingProfile),
       });
     }
@@ -135,13 +135,13 @@ app.post('/api/profiles', async (req, res) => {
 
     if (profileData.error) {
       return res.status(profileData.statusCode).json({
-        status: 'error',
+        status: "error",
         message: `${profileData.api} returned an invalid response`,
       });
     }
 
     // Create new profile
-    const id = uuidv7();
+    const id = v7();
     const createdAt = new Date().toISOString();
     const ageGroup = classifyAgeGroup(profileData.age);
 
@@ -162,112 +162,114 @@ app.post('/api/profiles', async (req, res) => {
       ageGroup,
       profileData.country_id,
       profileData.country_probability,
-      createdAt
+      createdAt,
     );
 
-    const newProfile = db.prepare('SELECT * FROM profiles WHERE id = ?').get(id);
+    const newProfile = db
+      .prepare("SELECT * FROM profiles WHERE id = ?")
+      .get(id);
 
     return res.status(201).json({
-      status: 'success',
+      status: "success",
       data: formatProfile(newProfile),
     });
   } catch (error) {
-    console.error('Error creating profile:', error);
+    console.error("Error creating profile:", error);
     return res.status(500).json({
-      status: 'error',
-      message: 'Internal server error',
+      status: "error",
+      message: "Internal server error",
     });
   }
 });
 
 // Get Single Profile - GET /api/profiles/:id
-app.get('/api/profiles/:id', (req, res) => {
+app.get("/api/profiles/:id", (req, res) => {
   try {
     const { id } = req.params;
 
-    const profile = db.prepare('SELECT * FROM profiles WHERE id = ?').get(id);
+    const profile = db.prepare("SELECT * FROM profiles WHERE id = ?").get(id);
 
     if (!profile) {
       return res.status(404).json({
-        status: 'error',
-        message: 'Profile not found',
+        status: "error",
+        message: "Profile not found",
       });
     }
 
     return res.status(200).json({
-      status: 'success',
+      status: "success",
       data: formatProfile(profile),
     });
   } catch (error) {
-    console.error('Error fetching profile:', error);
+    console.error("Error fetching profile:", error);
     return res.status(500).json({
-      status: 'error',
-      message: 'Internal server error',
+      status: "error",
+      message: "Internal server error",
     });
   }
 });
 
 // Get All Profiles - GET /api/profiles
-app.get('/api/profiles', (req, res) => {
+app.get("/api/profiles", (req, res) => {
   try {
     const { gender, country_id, age_group } = req.query;
 
-    let query = 'SELECT * FROM profiles WHERE 1=1';
+    let query = "SELECT * FROM profiles WHERE 1=1";
     const params = [];
 
     if (gender) {
-      query += ' AND LOWER(gender) = ?';
+      query += " AND LOWER(gender) = ?";
       params.push(gender.toLowerCase());
     }
 
     if (country_id) {
-      query += ' AND UPPER(country_id) = ?';
+      query += " AND UPPER(country_id) = ?";
       params.push(country_id.toUpperCase());
     }
 
     if (age_group) {
-      query += ' AND LOWER(age_group) = ?';
+      query += " AND LOWER(age_group) = ?";
       params.push(age_group.toLowerCase());
     }
 
     const profiles = db.prepare(query).all(...params);
 
     return res.status(200).json({
-      status: 'success',
+      status: "success",
       count: profiles.length,
       data: profiles.map(formatProfile),
     });
   } catch (error) {
-    console.error('Error fetching profiles:', error);
+    console.error("Error fetching profiles:", error);
     return res.status(500).json({
-      status: 'error',
-      message: 'Internal server error',
+      status: "error",
+      message: "Internal server error",
     });
   }
 });
 
 // Delete Profile - DELETE /api/profiles/:id
-app.delete('/api/profiles/:id', (req, res) => {
+app.delete("/api/profiles/:id", (req, res) => {
   try {
     const { id } = req.params;
 
-    const profile = db.prepare('SELECT * FROM profiles WHERE id = ?').get(id);
+    const profile = db.prepare("SELECT * FROM profiles WHERE id = ?").get(id);
 
     if (!profile) {
       return res.status(404).json({
-        status: 'error',
-        message: 'Profile not found',
+        status: "error",
+        message: "Profile not found",
       });
     }
 
-    db.prepare('DELETE FROM profiles WHERE id = ?').run(id);
+    db.prepare("DELETE FROM profiles WHERE id = ?").run(id);
 
     return res.status(204).send();
   } catch (error) {
-    console.error('Error deleting profile:', error);
+    console.error("Error deleting profile:", error);
     return res.status(500).json({
-      status: 'error',
-      message: 'Internal server error',
+      status: "error",
+      message: "Internal server error",
     });
   }
 });
