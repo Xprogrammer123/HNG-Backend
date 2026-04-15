@@ -104,6 +104,7 @@ async function fetchProfileData(name) {
       country_probability: country.probability,
     };
   } catch (error) {
+    console.error("External API Error:", error.message, error.config?.url);
     let apiName = "External API";
     if (error.config?.url?.includes("genderize")) apiName = "Genderize";
     if (error.config?.url?.includes("agify")) apiName = "Agify";
