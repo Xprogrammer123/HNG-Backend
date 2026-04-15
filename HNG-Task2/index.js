@@ -15,8 +15,16 @@ app.use(express.json());
 app.use(cors({ origin: "*" }));
 
 // Database setup
-const db = new Database(path.join(__dirname, "profiles.db"));
-db.pragma("journal_mode = WAL");
+let db;
+const dbPath = process.env.VERCEL ? "/tmp/profiles.db" : path.join(__dirname, "profiles.db");
+
+try {
+  db = new Database(dbPath);
+  db.pragma("journal_mode = WAL");
+} catch (error) {
+  console.error("Database initialization failed, falling back to in-memory:", error.message);
+  db = new Database(":memory:");
+}
 
 // Create tables
 db.exec(`
