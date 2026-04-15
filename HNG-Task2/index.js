@@ -120,6 +120,7 @@ async function fetchProfileData(name) {
 
 // Create Profile - POST /api/profiles
 app.post("/api/profiles", async (req, res) => {
+  console.log("POST /api/profiles", req.body);
   try {
     const { name } = req.body;
 
