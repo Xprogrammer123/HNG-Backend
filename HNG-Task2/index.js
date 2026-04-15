@@ -72,7 +72,10 @@ async function fetchProfileData(name) {
     }
 
     // Validate Nationalize response
-    if (!agifyRes.data.country || agifyRes.data.country.length === 0) {
+    if (
+      !nationalizeRes.data.country ||
+      nationalizeRes.data.country.length === 0
+    ) {
       return {
         error: true,
         api: "Nationalize",
