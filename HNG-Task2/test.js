@@ -5,10 +5,18 @@ const BASE_URL = "http://localhost:3000/api/profiles";
 async function runTests() {
     console.log("🚀 Starting HNG-Task2 Integration Tests...\n");
 
+    const testName = "ella";
     try {
+        // 0. Cleanup if exists (ignore errors)
+        try {
+            const all = await axios.get(BASE_URL);
+            const existing = all.data.data.find(p => p.name.toLowerCase() === testName);
+            if (existing) await axios.delete(`${BASE_URL}/${existing.id}`);
+        } catch { }
+
         // 1. Create Profile
-        console.log("📝 Test: Create Profile");
-        const createRes = await axios.post(BASE_URL, { name: "TestUser_" + Date.now() });
+        console.log(`📝 Test: Create Profile (${testName})`);
+        const createRes = await axios.post(BASE_URL, { name: testName });
         if (createRes.status === 201 && createRes.data.status === "success") {
             console.log("✅ Success: Profile created\n");
         } else {

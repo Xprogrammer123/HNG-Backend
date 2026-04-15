@@ -104,7 +104,6 @@ async function fetchProfileData(name) {
       country_probability: country.probability,
     };
   } catch (error) {
-    console.error("External API Error:", error.message, error.config?.url);
     let apiName = "External API";
     if (error.config?.url?.includes("genderize")) apiName = "Genderize";
     if (error.config?.url?.includes("agify")) apiName = "Agify";
@@ -120,7 +119,6 @@ async function fetchProfileData(name) {
 
 // Create Profile - POST /api/profiles
 app.post("/api/profiles", async (req, res) => {
-  console.log("POST /api/profiles", req.body);
   try {
     const { name } = req.body;
 
@@ -312,7 +310,20 @@ function formatProfile(profile) {
   };
 }
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Health Check - GET /health
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "Server is healthy",
+    timestamp: new Date().toISOString(),
+  });
 });
+
+// Start server
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+export default app;
